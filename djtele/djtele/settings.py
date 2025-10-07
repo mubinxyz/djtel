@@ -1,3 +1,5 @@
+# settings.py
+
 """
 Django settings for djtele project.
 
@@ -28,7 +30,7 @@ SECRET_KEY = 'django-insecure-12&e8%&xgjbh-54_#o6b#+1zuy#jcbzc3=fyu^)xrp=xxg#g%y
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition

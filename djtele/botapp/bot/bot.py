@@ -10,12 +10,14 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from .engine.macross import MaCross
 from botapp.models import TelegramUser, UserAlert, UserCustom
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import threading
 # --------------------------
 # Config
 # --------------------------
-USE_WEBHOOK = False
-WEBHOOK_URL = "https://yourdomain.com"  # update later
-
+USE_WEBHOOK = True
+WEBHOOK_URL = "https://exit-editorials-notes-gradually.trycloudflare.com/bot-webhook/"
 
 class MaCrossBot:
     def __init__(self):
@@ -278,6 +280,12 @@ class MaCrossBot:
         self.bot.remove_webhook()
         self.bot.set_webhook(url=WEBHOOK_URL)
         print("🤖 Bot running in WEBHOOK mode...")
+
+    def process_webhook_update(self, request_body):
+        """Process incoming webhook from Django view"""
+        update = telebot.types.Update.de_json(request_body.decode("utf-8"))
+        # Use a separate thread to avoid blocking
+        threading.Thread(target=lambda: self.bot.process_new_updates([update])).start()
 
     def run(self):
         if USE_WEBHOOK:
