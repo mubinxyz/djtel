@@ -12,17 +12,29 @@ from botapp.models import TelegramUser, UserAlert, UserCustom
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import threading
+import requests
 # --------------------------
 # Config
 # --------------------------
 USE_WEBHOOK = True
-WEBHOOK_URL = "https://exit-editorials-notes-gradually.trycloudflare.com/bot-webhook/"
+WEBHOOK_URL = "https://stress-conditional-accounting-territory.trycloudflare.com/bot-webhook/"
+
+
 
 class MaCrossBot:
     def __init__(self):
         self.bot = telebot.TeleBot(settings.BOT_TOKEN, parse_mode="HTML")
         self._register_handlers()
+        if USE_WEBHOOK:
+            self._auto_set_webhook()
+
+    def _auto_set_webhook(self):
+        self.bot.remove_webhook()
+        set_url = f"https://api.telegram.org/bot{self.bot.token}/setWebhook"
+        resp = requests.post(set_url, data={"url": WEBHOOK_URL})
+        print(f"[Webhook] setWebhook response (auto): {resp.status_code} {resp.text}")
+        self.bot.set_webhook(url=WEBHOOK_URL)
+
 
     def _register_handlers(self):
         """Register all command/message handlers"""
@@ -277,16 +289,19 @@ class MaCrossBot:
         self.bot.infinity_polling(skip_pending=True)
 
     def run_webhook(self):
-        self.bot.remove_webhook()
-        self.bot.set_webhook(url=WEBHOOK_URL)
+        # import requests
+        # self.bot.remove_webhook()
+        # set_url = f"https://api.telegram.org/bot{self.bot.token}/setWebhook"
+        # resp = requests.post(set_url, data={"url": WEBHOOK_URL})
+        # print(f"[Webhook] setWebhook response: {resp.status_code} {resp.text}")
+        # self.bot.set_webhook(url=WEBHOOK_URL)
         print("🤖 Bot running in WEBHOOK mode...")
 
     def process_webhook_update(self, request_body):
         """Process incoming webhook from Django view"""
         update = telebot.types.Update.de_json(request_body.decode("utf-8"))
-        # Use a separate thread to avoid blocking
-        threading.Thread(target=lambda: self.bot.process_new_updates([update])).start()
-
+        self.bot.process_new_updates([update])
+        
     def run(self):
         if USE_WEBHOOK:
             self.run_webhook()
